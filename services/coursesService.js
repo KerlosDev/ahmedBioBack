@@ -41,24 +41,42 @@ const createCourseWithImage = async (body, imageFile = null) => {
     level: body.level,
     chapters,
     exams,
+    isDraft: body.isDraft === "true" || body.isDraft === true // <-- Add this line
   });
 
   return course;
 };
 
 // ✅ جلب كل الكورسات أو كورس واحد
-const getCourses = async (req,res) => {
+const getCourses = async (req, res) => {
 
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
 
-  const exercises = await Course.find().skip(skip).limit(parseInt(limit));
+  const courses = await Course.find().skip(skip).limit(parseInt(limit));
   res.status(200).json({
-    results: exercises.length,
+    results: courses.length,
     page: +page,
-    exercises,
-  }); 
+    courses,
+  });
 
+
+};
+
+const getAllCoursesForAdmin = async (req, res) => {
+
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+
+  const course = await Course.find().populate('chapters')
+    .populate('exams');;
+  console.log(course)
+  if (!course) {
+    return res.status(404).json({ message: "الكورس غير موجود." });
+  }
+
+  res.status(200).json(course);
 };
 
 // ✅ تحديث كورس
@@ -83,6 +101,9 @@ const updateCourse = async (courseId, body, imageFile = null) => {
   course.level = body.level || course.level;
   course.chapters = chapters;
   course.exams = exams;
+  if (typeof body.isDraft !== "undefined") {
+    course.isDraft = body.isDraft === "true" || body.isDraft === true; // <-- Add this line
+  }
 
   await course.save();
 
@@ -99,10 +120,10 @@ const deleteCourse = async (courseId) => {
 
 const getCourseById = async (req, res) => {
   const { id } = req.params;
- 
+
   const course = await Course.findById(id).populate('chapters')
-  .populate('exams');;
-console.log(course)
+    .populate('exams');;
+  console.log(course)
   if (!course) {
     return res.status(404).json({ message: "الكورس غير موجود." });
   }
@@ -118,4 +139,5 @@ module.exports = {
   updateCourse: expressAsyncHandler(updateCourse),
   getCourseById: expressAsyncHandler(getCourseById),
   deleteCourse: expressAsyncHandler(deleteCourse),
+  getAllCoursesForAdmin: expressAsyncHandler(getAllCoursesForAdmin),
 };

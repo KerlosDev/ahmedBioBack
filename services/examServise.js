@@ -58,11 +58,31 @@ const createExamWithImages = async (body, filesMap = {}) => {
   return exam;
 };
 
-// ✅ جلب جميع الامتحانات
-const getAllExams = async () => {
+// ✅ جلب جميع الامتحانات مع التصفح والبحث
+const getAllExams = async (page = 1, limit = 10, searchTerm = '') => {
   try {
-    const exams = await Exam.find().select("title duration createdAt");
-    return exams;
+    const skip = (page - 1) * limit;
+
+    // Create search query if searchTerm exists
+    const searchQuery = searchTerm
+      ? { title: { $regex: searchTerm, $options: 'i' } }
+      : {};
+
+    // Get total count for pagination
+    const totalExams = await Exam.countDocuments(searchQuery);
+
+    // Get paginated and filtered exams
+    const exams = await Exam.find(searchQuery)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return {
+      exams,
+      currentPage: page,
+      totalPages: Math.ceil(totalExams / limit),
+      totalExams
+    };
   } catch (error) {
     console.error("Get Exams Error:", error.message);
     throw new Error("فشل في جلب الامتحانات");
@@ -81,9 +101,71 @@ const getExamById = async (examId) => {
   }
 };
 
+// ✅ حذف امتحان حسب الـ ID
+const deleteExamById = async (examId) => {
+  try {
+    const exam = await Exam.findByIdAndDelete(examId);
+    if (!exam) throw new Error("الامتحان غير موجود");
+    return exam;
+  } catch (error) {
+    console.error("Delete Exam Error:", error.message);
+    throw new Error("فشل في حذف الامتحان");
+  }
+};
+
+// ✅ تحديث امتحان حسب الـ ID
+const updateExamById = async (examId, examData, filesMap = {}) => {
+  try {
+    const { title, duration } = examData;
+    let questions = [];
+
+    try {
+      questions = JSON.parse(examData.questions);
+    } catch (error) {
+      throw new Error("صيغة الأسئلة غير صحيحة. يجب أن تكون JSON.");
+    }
+
+    const processedQuestions = await Promise.all(
+      questions.map(async (q, index) => {
+        let imageUrl = q.imageUrl; // Keep existing image if no new one
+        const file = filesMap[String(index)];
+
+        if (file) {
+          imageUrl = await uploadToImgur(file.buffer);
+        }
+
+        return {
+          title: q.title,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          imageUrl,
+        };
+      })
+    );
+
+    const exam = await Exam.findByIdAndUpdate(
+      examId,
+      {
+        title,
+        duration,
+        questions: processedQuestions,
+      },
+      { new: true }
+    );
+
+    if (!exam) throw new Error("الامتحان غير موجود");
+    return exam;
+  } catch (error) {
+    console.error("Update Exam Error:", error.message);
+    throw new Error("فشل في تحديث الامتحان");
+  }
+};
+
 module.exports = {
   uploadToImgur,
   createExamWithImages,
   getAllExams,
-  getExamById
+  getExamById,
+  deleteExamById,
+  updateExamById
 };

@@ -46,7 +46,7 @@ router.get('/all', protect, async (req, res) => {
 
 router.post('/', protect, async (req, res) => {
     const { courseId, chapterId, lessonId, lessonTitle } = req.body;
-    const studentId = req.user.id;
+    const studentId = req.user._id;
 
     try {
         let history = await WatchHistory.findOne({ studentId, lessonId });

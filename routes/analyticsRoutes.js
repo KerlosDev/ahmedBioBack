@@ -1,0 +1,55 @@
+const express = require('express');
+const { protect, isAdmin } = require('../services/authService');
+const {
+    getStudentProgress,
+    getAllStudentsProgress,
+    getNewStudentsCount,
+    calculateTotalRevenue,
+    getPendingEnrollments
+} = require('../services/analyticsService');
+const User = require('../modules/userModule');
+
+const router = express.Router();
+
+// Protected routes (require authentication)
+router.use(protect);
+
+// Get progress for the current logged-in student
+router.get('/progress', getStudentProgress);
+
+// Get progress for a specific student (admin only)
+router.get('/progress/:studentId', isAdmin, getStudentProgress);
+
+// Get progress for all students (admin only)
+router.get('/all', isAdmin, getAllStudentsProgress);
+
+// Dashboard statistics routes (admin only)
+router.get('/new-students', isAdmin, async (req, res) => {
+    try {
+        const days = parseInt(req.query.days) || 7;
+        const count = await getNewStudentsCount(days);
+        res.json({ success: true, data: count });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+router.get('/revenue', isAdmin, async (req, res) => {
+    try {
+        const revenue = await calculateTotalRevenue();
+        res.json({ success: true, data: revenue });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+router.get('/pending-enrollments', isAdmin, async (req, res) => {
+    try {
+        const count = await getPendingEnrollments();
+        res.json({ success: true, data: count });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+module.exports = router;

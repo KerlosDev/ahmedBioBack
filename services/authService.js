@@ -34,7 +34,10 @@ exports.signUp = expressAsyncHandler(async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-        { id: newUser._id },
+        { 
+            id: newUser._id,
+            role: newUser.role 
+        },
         process.env.JWT_SECRET || "secretkey",
         { expiresIn: '7d' }
     );
@@ -47,7 +50,8 @@ exports.signUp = expressAsyncHandler(async (req, res) => {
             id: newUser._id,
             name: newUser.name,
             email: newUser.email,
-            phoneNumber: newUser.phoneNumber
+            phoneNumber: newUser.phoneNumber,
+            role: newUser.role
         },
         token
     });
@@ -73,7 +77,10 @@ exports.signIn = expressAsyncHandler(async (req, res) => {
 
     // توليد التوكن
     const token = jwt.sign(
-        { id: user._id },
+        { 
+            id: user._id,
+            role: user.role 
+        },
         process.env.JWT_SECRET || "secretkey",
         { expiresIn: '7d' }
     );
@@ -85,7 +92,8 @@ exports.signIn = expressAsyncHandler(async (req, res) => {
             id: user._id,
             name: user.name,
             email: user.email,
-            phoneNumber: user.phoneNumber
+            phoneNumber: user.phoneNumber,
+            role: user.role
         },
         token
     });
@@ -111,7 +119,10 @@ exports.protect = expressAsyncHandler(async (req, res, next) => {
             return res.status(401).json({ message: "User not found" });
         }
 
-        req.user = user;
+        req.user = {
+            ...user.toObject(),
+            role: user.role
+        };
         next();
     } catch (error) {
         res.status(401).json({ message: "Not authorized or token failed" });
@@ -131,3 +142,5 @@ exports.isAllow = (...roles) => {
         next();
     };
 };
+
+exports.isAdmin = exports.isAllow('admin');

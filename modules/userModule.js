@@ -37,7 +37,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 6
-
     },
     gender: {
         type: String,
@@ -54,9 +53,31 @@ const userSchema = new mongoose.Schema({
         required: true,
         enum: egyptGovernments
     },
+    isBanned: {
+        type: Boolean,
+        default: false
+    },
+    banReason: {
+        type: String,
+        default: null
+    },
+    lastActive: {
+        type: Date,
+        default: Date.now
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
+    },
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
     }
 });
 

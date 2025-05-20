@@ -12,7 +12,10 @@ const courseRoutes = require("./routes/courseRoutes");
 const examResultsRouter = require("./routes/examResultsRoutes");
 const watchHistoryRoutes = require("./routes/watchHistoryRoutes");
 const rankRouter = require("./routes/rankRouter");
- 
+const analyticsRoutes = require("./routes/analyticsRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const offerRoutes = require("./routes/offerRoutes");
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,9 +37,12 @@ app.use('/exam', examRoutes);
 app.use('/course', courseRoutes);
 app.use('/user', userRoutes);
 app.use('/examResult', examResultsRouter);
-app.use('/watchHistory',watchHistoryRoutes)
-app.use('/rank',rankRouter)
- 
+app.use('/watchHistory', watchHistoryRoutes);
+app.use('/rank', rankRouter);
+app.use('/analytics', analyticsRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/offers', offerRoutes);
+
 app.listen(PORT, () => {
   console.log(`The server is running on port ${PORT}`);
 });

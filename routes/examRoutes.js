@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
-const { createExamWithImages, getAllExams, getExamById } = require("../services/examServise");
+const { createExamWithImages, getAllExams, getExamById, deleteExamById, updateExamById } = require("../services/examServise");
 
 // ✅ Controller لإنشاء الامتحان
 const createExam = async (req, res) => {
@@ -29,11 +29,15 @@ const createExam = async (req, res) => {
 // ✅ POST /api/exams
 router.post("/", upload.any(), createExam);
 
-// ✅ GET all exams
+// ✅ GET all exams with pagination and search
 router.get("/", async (req, res) => {
   try {
-    const exams = await getAllExams();
-    res.json(exams);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const searchTerm = req.query.search || '';
+
+    const result = await getAllExams(page, limit, searchTerm);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -46,6 +50,37 @@ router.get("/:id", async (req, res) => {
     res.json(exam);
   } catch (error) {
     res.status(404).json({ message: error.message });
+  }
+});
+
+// ✅ DELETE exam by ID
+router.delete("/:id", async (req, res) => {
+  try {
+    const exam = await deleteExamById(req.params.id);
+    res.json({ message: "تم حذف الامتحان بنجاح", exam });
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+});
+
+// ✅ PUT update exam by ID
+router.put("/:id", upload.any(), async (req, res) => {
+  try {
+    const filesMap = {};
+    if (req.files && Array.isArray(req.files)) {
+      req.files.forEach((file) => {
+        const index = file.fieldname.match(/questions\[(\d+)\]/)?.[1];
+        if (index !== undefined) {
+          filesMap[index] = file;
+        }
+      });
+    }
+
+    const exam = await updateExamById(req.params.id, req.body, filesMap);
+    res.json({ message: "تم تحديث الامتحان بنجاح", exam });
+  } catch (error) {
+    console.error("Update Exam Error:", error);
+    res.status(500).json({ message: error.message || "فشل تحديث الامتحان" });
   }
 });
 

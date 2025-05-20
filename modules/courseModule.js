@@ -41,6 +41,10 @@ const courseSchema = new mongoose.Schema({
       ref: "Exam",
     }
   ],
+  isDraft: {
+    type: Boolean,
+    default: true,
+  },
 }, {
   timestamps: true,
 });

@@ -59,6 +59,18 @@ router.get('/:studentId', async (req, res) => {
   }
 });
 
+router.get('/result/:studentId', async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const results = await getResultsByStudent(studentId);
+
+    if (!results) return res.status(404).json({ message: "No results found." });
+
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 router.get('/:studentId/history/:examTitle', async (req, res) => {
   try {
     const { studentId, examTitle } = req.params;
