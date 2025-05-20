@@ -120,9 +120,16 @@ const deleteCourse = async (courseId) => {
 
 const getCourseById = async (req, res) => {
   const { id } = req.params;
+  
 
-  const course = await Course.findById(id).populate('chapters')
-    .populate('exams');;
+  const course = await Course.findById(id).populate({
+      path: 'chapters',
+      select: 'title', // only include the title field
+    }).populate({
+      path: 'exams',
+      select: 'title', // only include the title field
+    });
+
   console.log(course)
   if (!course) {
     return res.status(404).json({ message: "الكورس غير موجود." });

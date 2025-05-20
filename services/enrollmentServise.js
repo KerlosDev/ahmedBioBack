@@ -51,8 +51,14 @@ exports.getEnrollById = async (req, res) => {
         }).populate({
             path: 'courseId',
             populate: [
-                { path: 'chapters' },
-                { path: 'exams' }
+                {
+                    path: 'chapters',
+                    
+                },
+                {
+                    path: 'exams',
+                    select: 'title',
+                }
             ]
         });
 

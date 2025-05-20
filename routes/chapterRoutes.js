@@ -6,17 +6,18 @@ const {
   deleteChapter,
   updateChapterLessons
 } = require("../services/chaperServise");
+const { isAdmin } = require("../services/authService");
 
 // Create new chapter
-router.post("/", createChapter);
+router.post("/", isAdmin, createChapter);
 
 // Update chapter
-router.put("/:id", updateChapter);
+router.put("/:id", isAdmin, updateChapter);
 
 // Delete chapter
-router.delete("/:id", deleteChapter);
+router.delete("/:id", isAdmin, deleteChapter);
 
 // Update chapter lessons
-router.put("/:id/lessons", updateChapterLessons);
+router.put("/:id/lessons", isAdmin, updateChapterLessons);
 
 module.exports = router;
