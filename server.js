@@ -15,6 +15,9 @@ const rankRouter = require("./routes/rankRouter");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const offerRoutes = require("./routes/offerRoutes");
+const statsRoutes = require("./routes/statsRoutes");
+const bookRoutes = require("./routes/bookRoutes");
+const bookOrderRoutes = require("./routes/bookOrderRoutes");
 
 dotenv.config();
 const app = express();
@@ -42,6 +45,9 @@ app.use('/rank', rankRouter);
 app.use('/analytics', analyticsRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/offers', offerRoutes);
+app.use('/stats', statsRoutes);
+app.use('/books', bookRoutes);
+app.use('/book-orders', bookOrderRoutes);
 
 app.listen(PORT, () => {
   console.log(`The server is running on port ${PORT}`);
