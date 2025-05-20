@@ -3,10 +3,10 @@ const router = express.Router();
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
-const { createCourseWithImage, getCourses, getCourseById, updateCourse, deleteCourse, getAllCoursesForAdmin } = require("../services/coursesService");
-const { isAdmin } = require("../services/authService");
+const { createCourseWithImage, getCourses, getCourseById, updateCourse, deleteCourse, getAllCoursesForAdmin, getCourseByIdAdmin } = require("../services/coursesService");
+const { isAdmin, protect } = require("../services/authService");
 
-router.post("/create", isAdmin, upload.single("image"), async (req, res) => {
+router.post("/create",protect, isAdmin, upload.single("image"), async (req, res) => {
   try {
     const course = await createCourseWithImage(req.body, req.file || null);
     res.status(201).json({
@@ -19,7 +19,7 @@ router.post("/create", isAdmin, upload.single("image"), async (req, res) => {
   }
 });
 
-router.put("/:id", isAdmin, upload.single("image"), async (req, res) => {
+router.put("/:id", protect, isAdmin, upload.single("image"), async (req, res) => {
   try {
     const course = await updateCourse(req.params.id, req.body, req.file || null);
     res.status(200).json({
@@ -32,7 +32,7 @@ router.put("/:id", isAdmin, upload.single("image"), async (req, res) => {
   }
 });
 
-router.delete("/:id", isAdmin, async (req, res) => {
+router.delete("/:id",protect, isAdmin, async (req, res) => {
   try {
     await deleteCourse(req.params.id);
     res.status(200).json({ message: "تم حذف الكورس بنجاح" });
@@ -45,5 +45,6 @@ router.delete("/:id", isAdmin, async (req, res) => {
 router.get("/", getCourses);
 router.get("/allCourses", isAdmin, getAllCoursesForAdmin);
 router.get("/:id", getCourseById);
+router.get("/admin/:id", getCourseByIdAdmin);
 
 module.exports = router;

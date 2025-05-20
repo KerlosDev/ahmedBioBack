@@ -1,5 +1,5 @@
 const express = require('express');
-const { protect } = require('../services/authService');
+const { protect, isAdmin } = require('../services/authService');
 const {
     createNotification,
     getUserNotifications,
@@ -13,7 +13,7 @@ const router = express.Router();
 router.use(protect);
 
 // Create a new notification
-router.post('/', async (req, res) => {
+router.post('/', isAdmin, async (req, res) => {
     try {
         const { message } = req.body;
         const notification = await createNotification({
@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
 });
 
 // Delete a notification
-router.delete('/:notificationId', async (req, res) => {
+router.delete('/:notificationId', isAdmin, async (req, res) => {
     try {
         const notification = await deleteNotification(req.user._id, req.params.notificationId);
         res.json({
@@ -66,7 +66,7 @@ router.delete('/:notificationId', async (req, res) => {
 });
 
 // Delete all notifications
-router.delete('/', async (req, res) => {
+router.delete('/', isAdmin, async (req, res) => {
     try {
         const result = await deleteAllNotifications(req.user._id);
         res.json({

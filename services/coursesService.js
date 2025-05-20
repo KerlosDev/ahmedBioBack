@@ -138,6 +138,24 @@ const getCourseById = async (req, res) => {
   res.status(200).json(course);
 };
 
+const getCourseByIdAdmin = async (req, res) => {
+  const { id } = req.params;
+  
+
+  const course = await Course.findById(id).populate({
+      path: 'chapters', // only include the title field
+    }).populate({
+      path: 'exams', // only include the title field
+    });
+
+  console.log(course)
+  if (!course) {
+    return res.status(404).json({ message: "الكورس غير موجود." });
+  }
+
+  res.status(200).json(course);
+};
+
 
 module.exports = {
   uploadToImgur,
@@ -145,6 +163,7 @@ module.exports = {
   getCourses: expressAsyncHandler(getCourses),
   updateCourse: expressAsyncHandler(updateCourse),
   getCourseById: expressAsyncHandler(getCourseById),
+  getCourseByIdAdmin: expressAsyncHandler(getCourseByIdAdmin),
   deleteCourse: expressAsyncHandler(deleteCourse),
   getAllCoursesForAdmin: expressAsyncHandler(getAllCoursesForAdmin),
 };

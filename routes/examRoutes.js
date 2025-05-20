@@ -4,6 +4,7 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
 const { createExamWithImages, getAllExams, getExamById, deleteExamById, updateExamById } = require("../services/examServise");
+const { isAdmin, protect } = require("../services/authService");
 
 // ✅ Controller لإنشاء الامتحان
 const createExam = async (req, res) => {
@@ -27,10 +28,10 @@ const createExam = async (req, res) => {
 };
 
 // ✅ POST /api/exams
-router.post("/", upload.any(), createExam);
+router.post("/", upload.any(),protect, isAdmin, createExam);
 
 // ✅ GET all exams with pagination and search
-router.get("/", async (req, res) => {
+router.get("/", protect, isAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -54,7 +55,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // ✅ DELETE exam by ID
-router.delete("/:id", async (req, res) => {
+router.delete("/:id",protect, isAdmin, async (req, res) => {
   try {
     const exam = await deleteExamById(req.params.id);
     res.json({ message: "تم حذف الامتحان بنجاح", exam });
@@ -64,7 +65,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // ✅ PUT update exam by ID
-router.put("/:id", upload.any(), async (req, res) => {
+router.put("/:id", isAdmin, upload.any(), async (req, res) => {
   try {
     const filesMap = {};
     if (req.files && Array.isArray(req.files)) {

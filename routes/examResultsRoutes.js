@@ -6,7 +6,7 @@ const {
   getAllExamResults
 } = require('../services/examResltsServise');
 
-const { protect } = require('../services/authService');
+const { protect, isAdmin } = require('../services/authService');
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.get('/getMe', protect, async (req, res) => {
   }
 });
 
-router.get('/all', protect, async (req, res) => {
+router.get('/all', protect, isAdmin, async (req, res) => {
   try {
     const results = await getAllExamResults();
     res.json({ success: true, data: results });
@@ -43,7 +43,7 @@ router.post('/create', protect, async (req, res) => {
   }
 });
 
-router.get('/:studentId', async (req, res) => {
+router.get('/:studentId',isAdmin, async (req, res) => {
   try {
     const { studentId } = req.params;
     const results = await getResultsByStudent(studentId);
@@ -56,7 +56,7 @@ router.get('/:studentId', async (req, res) => {
   }
 });
 
-router.get('/result/:studentId', async (req, res) => {
+router.get('/result/:studentId', isAdmin, async (req, res) => {
   try {
     const { studentId } = req.params;
     const results = await getResultsByStudent(studentId);
