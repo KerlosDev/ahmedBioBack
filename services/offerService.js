@@ -37,7 +37,7 @@ class OfferService {
             if (updateData.courseLink === '') {
                 updateData.courseLink = null;
             }
-            
+
             const offer = await Offer.findByIdAndUpdate(
                 offerId,
                 updateData,

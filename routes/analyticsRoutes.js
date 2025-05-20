@@ -5,7 +5,8 @@ const {
     getAllStudentsProgress,
     getNewStudentsCount,
     calculateTotalRevenue,
-    getPendingEnrollments
+    getPendingEnrollments,
+    getStudentsAnalytics
 } = require('../services/analyticsService');
 const User = require('../modules/userModule');
 
@@ -49,6 +50,21 @@ router.get('/pending-enrollments', isAdmin, async (req, res) => {
         res.json({ success: true, data: count });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Get students analytics
+router.get('/students', isAdmin, async (req, res) => {
+    try {
+        const analytics = await getStudentsAnalytics();
+        res.json({ success: true, data: analytics });
+    } catch (error) {
+        console.error('Error in /analytics/students:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching student analytics',
+            error: error.message
+        });
     }
 });
 

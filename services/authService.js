@@ -34,9 +34,9 @@ exports.signUp = expressAsyncHandler(async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-        { 
+        {
             id: newUser._id,
-            role: newUser.role 
+            role: newUser.role
         },
         process.env.JWT_SECRET || "secretkey",
         { expiresIn: '7d' }
@@ -60,11 +60,11 @@ exports.signUp = expressAsyncHandler(async (req, res) => {
 exports.signIn = expressAsyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
- 
+
     // ابحث عن المستخدم بالإيميل أو رقم الهاتف
     const user = await User.findOne({ email });
 
-    if (!user) { 
+    if (!user) {
         return res.status(400).json({ message: 'البريد الإلكتروني أو رقم الهاتف غير صحيح' });
     }
 
@@ -72,20 +72,20 @@ exports.signIn = expressAsyncHandler(async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-         return res.status(401).json({ message: 'كلمة المرور غير صحيحة' });
+        return res.status(401).json({ message: 'كلمة المرور غير صحيحة' });
     }
 
     // توليد التوكن
     const token = jwt.sign(
-        { 
+        {
             id: user._id,
-            role: user.role 
+            role: user.role
         },
         process.env.JWT_SECRET || "secretkey",
         { expiresIn: '7d' }
     );
 
- 
+
     res.status(200).json({
         message: 'تم تسجيل الدخول بنجاح',
         user: {
@@ -114,12 +114,13 @@ exports.protect = expressAsyncHandler(async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id).select("-password");
- 
+
         if (!user) {
             return res.status(401).json({ message: "User not found" });
         }
 
         req.user = {
+            id: user._id,
             ...user.toObject(),
             role: user.role
         };

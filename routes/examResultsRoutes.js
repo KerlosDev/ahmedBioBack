@@ -14,10 +14,7 @@ router.get('/getMe', protect, async (req, res) => {
   try {
     const studentId = req.user._id;
     const results = await getResultsByStudent(studentId);
-
-    if (!results) return res.status(404).json({ message: "No results found." });
-
-    res.json(results);
+    res.json(results);  // Now always returns a valid response with at least empty results array
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

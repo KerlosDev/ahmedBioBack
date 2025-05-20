@@ -43,14 +43,18 @@ exports.createEnrollStudent = async (req, res) => {
 };
 exports.getEnrollById = async (req, res) => {
     try {
-        const { courseId } = req.params;
         const studentId = req.user._id;
 
         const enrollment = await enrollmentModel.findOne({
-            courseId,
             studentId,
             paymentStatus: "paid"
-        }).populate('courseId');
+        }).populate({
+            path: 'courseId',
+            populate: [
+                { path: 'chapters' },
+                { path: 'exams' }
+            ]
+        });
 
         // Always return a consistent response structure
         return res.status(200).json({
@@ -163,10 +167,10 @@ exports.getAllEnrollments = async (req, res) => {
 
         const formattedEnrollments = enrollments.map(enrollment => ({
             _id: enrollment._id,
-            userEmail: enrollment.studentId.email,
-            phoneNumber: enrollment.phoneNumber, // Use enrollment.phoneNumber directly
-            courseName: enrollment.courseId.nameofcourse,
-            courseId: enrollment.courseId._id,
+            userEmail: enrollment.studentId?.email || 'N/A',
+            phoneNumber: enrollment.phoneNumber,
+            courseName: enrollment.courseId?.name || 'N/A', // Changed from nameofcourse to name
+            courseId: enrollment.courseId?._id || null,
             price: enrollment.price,
             paymentStatus: enrollment.paymentStatus,
             createdAt: enrollment.createdAt

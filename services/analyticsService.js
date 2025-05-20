@@ -4,7 +4,7 @@ const User = require('../modules/userModule');
 const Course = require('../modules/courseModule');
 const Chapter = require('../modules/chapterModel');
 const Enrollment = require('../modules/enrollmentModel'); // Assuming this is the correct path for Enrollment
- 
+
 exports.getStudentProgress = async (req, res) => {
     try {
         const studentId = req.params.studentId || req.user._id;
@@ -131,7 +131,7 @@ exports.getNewStudentsCount = async (days = 7) => {
     date.setDate(date.getDate() - days);
 
     const newStudents = await User.countDocuments({
-        role: 'student',
+        role: 'user',
         createdAt: { $gte: date }
     });
 
@@ -141,7 +141,7 @@ exports.getNewStudentsCount = async (days = 7) => {
 exports.calculateTotalRevenue = async () => {
     const totalRevenue = await Enrollment.aggregate([
         {
-            $match: { status: 'paid' }
+            $match: { paymentStatus: 'paid' }
         },
         {
             $group: {
@@ -155,5 +155,49 @@ exports.calculateTotalRevenue = async () => {
 };
 
 exports.getPendingEnrollments = async () => {
-    return await Enrollment.countDocuments({ status: 'pending' });
+    return await Enrollment.countDocuments({ paymentStatus: 'pending' });
+};
+
+exports.getStudentsAnalytics = async () => {
+    try {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        // Get total counts
+        const totalStudents = await User.countDocuments({ role: 'user' });
+        const bannedStudents = await User.countDocuments({ role: 'user', isBanned: true });
+        const activeStudents = await User.countDocuments({ role: 'user', isBanned: false });
+        const lastWeekActive = await User.countDocuments({
+            role: 'user',
+            lastActive: { $gte: oneWeekAgo }
+        });
+
+        // Get government distribution
+        const governmentDistribution = await User.aggregate([
+            { $match: { role: 'user' } },
+            { $group: { _id: '$government', value: { $sum: 1 } } },
+            { $project: { id: '$_id', value: 1, _id: 0 } },
+            { $sort: { value: -1 } }
+        ]);
+
+        // Get level distribution
+        const levelDistribution = await User.aggregate([
+            { $match: { role: 'user' } },
+            { $group: { _id: '$level', value: { $sum: 1 } } },
+            { $project: { id: '$_id', value: 1, _id: 0 } },
+            { $sort: { value: -1 } }
+        ]);
+
+        return {
+            totalStudents,
+            activeStudents,
+            bannedStudents,
+            lastWeekActive,
+            governmentDistribution,
+            levelDistribution
+        };
+    } catch (error) {
+        console.error('Error getting students analytics:', error);
+        throw error;
+    }
 };

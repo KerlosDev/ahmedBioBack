@@ -6,7 +6,8 @@ const {
     updateUserbyId,
     getAllStudents,
     toggleBanStatus,
-    updateLastActive
+    updateLastActive,
+    getUserAllDataById
 } = require('../services/userServise');
 const WatchHistory = require('../modules/WatchHistory');
 const Enrollment = require('../modules/enrollmentModel');
@@ -21,7 +22,7 @@ router.use(protect);
 router.get('/all-students-status', isAdmin, async (req, res) => {
     try {
         // Get all users that are students (not admins)
-        const students = await User.find( )
+        const students = await User.find()
             .select('name phoneNumber parentPhoneNumber email')
             .lean();
 
@@ -106,5 +107,8 @@ router.put('/last-active', updateLastActive);
 router.use('/students', isAdmin);
 router.get('/students', getAllStudents);
 router.put('/students/:studentId/ban', toggleBanStatus);
+
+// Get all data for user by ID (admin only)
+router.get('/:id/all-data', isAdmin, getUserAllDataById);
 
 module.exports = router;

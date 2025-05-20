@@ -1,6 +1,12 @@
 const { check } = require('express-validator');
 
 exports.createOfferValidator = [
+    check('courseLink')
+        .notEmpty()
+        .withMessage('Course link is required')
+        .isURL()
+        .withMessage('Please provide a valid URL'),
+
     check('name')
         .notEmpty()
         .withMessage('Offer name is required')

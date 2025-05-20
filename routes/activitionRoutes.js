@@ -14,7 +14,8 @@ const { protect } = require("../services/authService");
 // Routes ordered from most specific to least specific
 router.get("/admin/enrollments", protect, getAllEnrollments);
 router.put("/payment/:id", protect, updatePaymentStatus);
- router.get("/:courseId", protect, getEnrollById);
+router.get("/:courseId", protect, getEnrollById);
+router.get("/enrolled/:id", protect, getEnrollById);
 router.get("/", protect, getAllUserErnollemnts);
 router.post("/", protect, enrollmentValidation, createEnrollStudent);
 

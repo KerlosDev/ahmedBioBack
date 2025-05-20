@@ -24,7 +24,14 @@ export const saveExamResult = async (studentId, examData) => {
 
 // ✅ Get all results for a specific student
 export const getResultsByStudent = async (studentId) => {
-  return await StudentExamResult.findOne({ studentId }).populate('studentId', 'name email');
+  const results = await StudentExamResult.findOne({ studentId }).populate('studentId', 'name email');
+  if (!results) {
+    return {
+      studentId: { name: '', email: '' },
+      results: []
+    };
+  }
+  return results;
 };
 
 // ✅ Get all attempts for a specific exam title (for a student)
