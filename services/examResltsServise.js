@@ -1,6 +1,7 @@
 const StudentExamResult = require('../modules/examResultSchema.js');
+
 // ✅ Add or update an exam result
-export const saveExamResult = async (studentId, examData) => {
+const saveExamResult = async (studentId, examData) => {
   const existingRecord = await StudentExamResult.findOne({ studentId });
 
   if (existingRecord) {
@@ -22,7 +23,7 @@ export const saveExamResult = async (studentId, examData) => {
 };
 
 // ✅ Get all results for a specific student
-export const getResultsByStudent = async (studentId) => {
+const getResultsByStudent = async (studentId) => {
   const results = await StudentExamResult.findOne({ studentId }).populate('studentId', 'name email');
   if (!results) {
     return {
@@ -34,7 +35,7 @@ export const getResultsByStudent = async (studentId) => {
 };
 
 // ✅ Get all attempts for a specific exam title (for a student)
-export const getExamHistory = async (studentId, examTitle) => {
+const getExamHistory = async (studentId, examTitle) => {
   const record = await StudentExamResult.findOne({ studentId });
   if (!record) return [];
 
@@ -42,18 +43,16 @@ export const getExamHistory = async (studentId, examTitle) => {
 };
 
 // ✅ Get all exam results for all students
-export const getAllExamResults = async () => {
+const getAllExamResults = async () => {
   return await StudentExamResult.find()
     .populate('studentId', 'name email')
     .sort({ createdAt: -1 });
 };
 
-
 // ✅ حساب ترتيب الطلاب بناءً على متوسط درجاتهم
-export const getStudentsRankings = async () => {
+const getStudentsRankings = async () => {
   const all = await StudentExamResult.find().populate('studentId', 'name email');
 
-  // حساب نسبة النجاح لكل طالب
   const studentsWithScores = all.map(student => {
     let totalCorrect = 0;
     let totalQuestions = 0;
@@ -74,14 +73,13 @@ export const getStudentsRankings = async () => {
     };
   });
 
-  // الترتيب تنازليًا حسب النسبة
   const sorted = studentsWithScores.sort((a, b) => b.score - a.score);
 
   return sorted;
 };
 
 // ✅ البحث عن ترتيب طالب معين
-export const getStudentRankById = async (targetId) => {
+const getStudentRankById = async (targetId) => {
   const rankings = await getStudentsRankings();
 
   const index = rankings.findIndex(r => r.studentId.toString() === targetId.toString());
@@ -92,4 +90,14 @@ export const getStudentRankById = async (targetId) => {
     rank: index + 1,
     ...rankings[index]
   };
+};
+
+// ✅ تصدير جميع الدوال
+module.exports = {
+  saveExamResult,
+  getResultsByStudent,
+  getExamHistory,
+  getAllExamResults,
+  getStudentsRankings,
+  getStudentRankById
 };
