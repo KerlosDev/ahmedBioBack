@@ -43,7 +43,7 @@ router.post('/create', protect, async (req, res) => {
   }
 });
 
-router.get('/:studentId',isAdmin, async (req, res) => {
+router.get('/:studentId', protect,isAdmin, async (req, res) => {
   try {
     const { studentId } = req.params;
     const results = await getResultsByStudent(studentId);
@@ -56,7 +56,7 @@ router.get('/:studentId',isAdmin, async (req, res) => {
   }
 });
 
-router.get('/result/:studentId', isAdmin, async (req, res) => {
+router.get('/result/:studentId',protect, isAdmin, async (req, res) => {
   try {
     const { studentId } = req.params;
     const results = await getResultsByStudent(studentId);

@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
 });
 
 // Delete a notification
-router.delete('/:notificationId', isAdmin, async (req, res) => {
+router.delete('/:notificationId',   isAdmin, async (req, res) => {
     try {
         const notification = await deleteNotification(req.user._id, req.params.notificationId);
         res.json({
@@ -66,7 +66,7 @@ router.delete('/:notificationId', isAdmin, async (req, res) => {
 });
 
 // Delete all notifications
-router.delete('/', isAdmin, async (req, res) => {
+router.delete('/',  isAdmin, async (req, res) => {
     try {
         const result = await deleteAllNotifications(req.user._id);
         res.json({

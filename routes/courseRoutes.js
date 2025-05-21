@@ -43,7 +43,7 @@ router.delete("/:id",protect, isAdmin, async (req, res) => {
 });
 
 router.get("/", getCourses);
-router.get("/allCourses", isAdmin, getAllCoursesForAdmin);
+router.get("/allCourses", protect, isAdmin, getAllCoursesForAdmin);
 router.get("/:id", getCourseById);
 router.get("/admin/:id", getCourseByIdAdmin);
 

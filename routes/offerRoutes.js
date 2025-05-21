@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const offerService = require('../services/offerService');
-const { protect, isAllow } = require('../services/authService');
+const { protect, isAllow, isAdmin } = require('../services/authService');
 const validaorMiddlewere = require('../middleware/validMiddleware');
 const {
     createOfferValidator,
@@ -23,7 +23,7 @@ router.get('/published', async (req, res, next) => {
 });
 
 // Protected routes (admin only)
-router.use(protect);
+router.use(protect,isAdmin);
 
 router.route('/')
     .get(async (req, res, next) => {

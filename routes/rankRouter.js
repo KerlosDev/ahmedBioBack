@@ -1,6 +1,6 @@
 
 const express = require('express');
-const {protect} = require('../services/authService.js')
+const {protect, isAdmin} = require('../services/authService.js')
 const { getStudentRankById, getStudentsRankings } = require( '../services/examResltsServise.js')
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.get('/me', protect, async (req, res) => {
 });
 
 // ✅ ترتيب كل الطلاب (مثلاً لإظهار جدول في لوحة التحكم)
-router.get('/all', protect, async (req, res) => {
+router.get('/all', protect ,isAdmin, async (req, res) => {
   try {
     const rankings = await getStudentsRankings();
     res.json({ success: true, data: rankings });

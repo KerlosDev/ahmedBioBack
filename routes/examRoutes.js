@@ -65,7 +65,7 @@ router.delete("/:id",protect, isAdmin, async (req, res) => {
 });
 
 // ✅ PUT update exam by ID
-router.put("/:id", isAdmin, upload.any(), async (req, res) => {
+router.put("/:id", protect, isAdmin, upload.any(), async (req, res) => {
   try {
     const filesMap = {};
     if (req.files && Array.isArray(req.files)) {

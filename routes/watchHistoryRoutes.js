@@ -1,5 +1,5 @@
 const WatchHistory = require('../modules/WatchHistory');
-const { protect } = require('../services/authService')
+const { protect, isAdmin } = require('../services/authService')
 const express = require('express')
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get('/my', protect, async (req, res) => {
 
 
 // ✅ [GET] سجل جميع المستخدمين (Admin)
-router.get('/all', protect, async (req, res) => {
+router.get('/all', protect, isAdmin, async (req, res) => {
     try {
         // تحقق لو المستخدم عنده صلاحية Admin (لو حابب تضيفها لاحقًا)
         /*     if (!req.user.isAdmin) {
