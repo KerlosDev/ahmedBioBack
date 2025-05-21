@@ -1,5 +1,4 @@
-import StudentExamResult from '../modules/examResultSchema.js';
-
+const StudentExamResult = require('../modules/examResultSchema.js');
 // ✅ Add or update an exam result
 export const saveExamResult = async (studentId, examData) => {
   const existingRecord = await StudentExamResult.findOne({ studentId });
