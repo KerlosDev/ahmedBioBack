@@ -53,7 +53,7 @@ exports.getEnrollById = async (req, res) => {
             populate: [
                 {
                     path: 'chapters',
-                    
+
                 },
                 {
                     path: 'exams',
@@ -189,5 +189,44 @@ exports.getAllEnrollments = async (req, res) => {
     } catch (error) {
         console.error("Get Enrollments Error:", error);
         res.status(500).json({ message: "حدث خطأ أثناء جلب البيانات" });
+    }
+};
+
+exports.getAllActiveForUser = async (req, res) => {
+    try {
+        const studentId = req.params.userid;
+        console.log(studentId)
+        const enrollment = await enrollmentModel.findOne({
+            studentId,
+            paymentStatus: "paid"
+        }).populate({
+            path: 'courseId',
+            populate: [
+                {
+                    path: 'chapters',
+
+                },
+                {
+                    path: 'exams',
+                    select: 'title',
+                }
+            ]
+        });
+
+        // Always return a consistent response structure
+        return res.status(200).json({
+            success: true,
+            isHeEnrolled: !!enrollment,
+            enrollment: enrollment || null,
+            message: enrollment ? "الطالب مشترك في هذا الكورس" : "الطالب غير مشترك بالكورس"
+        });
+    } catch (error) {
+        console.error("Enrollment Check Error:", error);
+        res.status(500).json({
+            success: false,
+            isHeEnrolled: false,
+            enrollment: null,
+            message: "حدث خطأ أثناء التحقق من الاشتراك"
+        });
     }
 };

@@ -6,7 +6,8 @@ const {
     getAllUserErnollemnts,
     getEnrlloments,
     updatePaymentStatus,
-    getAllEnrollments
+    getAllEnrollments,
+    getAllActiveForUser
 } = require("../services/enrollmentServise");
 const { enrollmentValidation } = require("../validator/activeValid");
 const { protect, isAdmin } = require("../services/authService");
@@ -15,6 +16,7 @@ const { protect, isAdmin } = require("../services/authService");
 router.get("/admin/enrollments", protect, isAdmin, getAllEnrollments);
 router.put("/payment/:id", protect, isAdmin, updatePaymentStatus);
 router.get("/:courseId", protect, getEnrollById); 
+router.get("/allActiv/:userid", protect, getAllActiveForUser); 
 router.get("/", protect, getAllUserErnollemnts);
 router.post("/", protect, enrollmentValidation, createEnrollStudent);
 
