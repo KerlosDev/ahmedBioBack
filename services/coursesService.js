@@ -120,33 +120,48 @@ const deleteCourse = async (courseId) => {
 
 const getCourseById = async (req, res) => {
   const { id } = req.params;
-  
 
   const course = await Course.findById(id).populate({
-      path: 'chapters',
-      select: 'title', // only include the title field
-    }).populate({
-      path: 'exams',
-      select: 'title', // only include the title field
-    });
+    path: 'chapters',
+    select: 'title lessons', // include title and lessons
+    populate: {
+      path: 'lessons',
+      select: 'title' // only include lesson titles
+    }
+  }).populate({
+    path: 'exams',
+    select: 'title', // only include the title field
+  });
 
-  console.log(course)
   if (!course) {
     return res.status(404).json({ message: "الكورس غير موجود." });
   }
 
-  res.status(200).json(course);
+  // Transform the response to include only chapter titles and lesson titles
+  const formattedCourse = {
+    ...course.toObject(),
+    chapters: course.chapters.map(chapter => ({
+      _id: chapter._id,
+      title: chapter.title,
+      lessons: chapter.lessons.map(lesson => ({
+        _id: lesson._id,
+        title: lesson.title
+      }))
+    }))
+  };
+
+  res.status(200).json(formattedCourse);
 };
 
 const getCourseByIdAdmin = async (req, res) => {
   const { id } = req.params;
-  
+
 
   const course = await Course.findById(id).populate({
-      path: 'chapters', // only include the title field
-    }).populate({
-      path: 'exams', // only include the title field
-    });
+    path: 'chapters', // only include the title field
+  }).populate({
+    path: 'exams', // only include the title field
+  });
 
   console.log(course)
   if (!course) {

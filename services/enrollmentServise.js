@@ -44,9 +44,11 @@ exports.createEnrollStudent = async (req, res) => {
 exports.getEnrollById = async (req, res) => {
     try {
         const studentId = req.user._id;
+        const courseId = req.params.courseId;
 
         const enrollment = await enrollmentModel.findOne({
             studentId,
+            courseId,
             paymentStatus: "paid"
         }).populate({
             path: 'courseId',
