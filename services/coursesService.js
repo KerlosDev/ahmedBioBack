@@ -64,19 +64,23 @@ const getCourses = async (req, res) => {
 };
 
 const getAllCoursesForAdmin = async (req, res) => {
+  try {
+    const courses = await Course.find()
+      .select('name description price isFree level isDraft createdAt')
+      .sort({ createdAt: -1 });
 
-  const { page = 1, limit = 10 } = req.query;
-  const skip = (page - 1) * limit;
-
-
-  const course = await Course.find().populate('chapters')
-    .populate('exams');;
-  console.log(course)
-  if (!course) {
-    return res.status(404).json({ message: "الكورس غير موجود." });
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      courses
+    });
+  } catch (error) {
+    console.error("Get All Courses Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "حدث خطأ أثناء جلب الكورسات"
+    });
   }
-
-  res.status(200).json(course);
 };
 
 // ✅ تحديث كورس

@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const User = require('../modules/userModule');
 const { validateSignUp, validateSignIn } = require('../validator/userValid');
-const { signUp, signIn, protect, isAdmin } = require('../services/authService');
+const { signUp, signIn, logout, protect, isAdmin } = require('../services/authService');
 const { getUserByIdService } = require('../services/userServise');
 
 
@@ -11,5 +11,18 @@ const router = express.Router();
 
 router.post('/signup', validateSignUp, signUp);
 router.post('/signin', validateSignIn, signIn);
+router.post('/logout', protect, logout);
+router.get('/validate', protect, (req, res) => {
+    // If protect middleware passes, session is valid
+    res.status(200).json({
+        message: 'Session is valid',
+        user: {
+            id: req.user.id,
+            name: req.user.name,
+            email: req.user.email,
+            role: req.user.role
+        }
+    });
+});
 router.get('/user', protect, isAdmin, getUserByIdService);
 module.exports = router;

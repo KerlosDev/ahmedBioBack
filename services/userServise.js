@@ -41,13 +41,34 @@ const getAllStudents = async (req, res) => {
             .skip((page - 1) * limit)
             .limit(limit);
 
+        // Add device information to each student
+        const studentsWithDevices = students.map(student => {
+            const studentObj = student.toObject();
+
+            // Parse device info if it exists
+            let deviceInfo = null;
+            if (studentObj.currentDeviceInfo) {
+                try {
+                    deviceInfo = JSON.parse(studentObj.currentDeviceInfo);
+                } catch (e) {
+                    deviceInfo = { userAgent: studentObj.currentDeviceInfo };
+                }
+            }
+
+            return {
+                ...studentObj,
+                deviceInfo: deviceInfo,
+                hasActiveSession: !!(studentObj.currentSessionToken && studentObj.sessionCreatedAt)
+            };
+        });
+
         res.status(200).json({
             status: 'success',
-            results: students.length,
+            results: studentsWithDevices.length,
             total,
             totalPages: Math.ceil(total / limit),
             currentPage: page,
-            data: students
+            data: studentsWithDevices
         });
     } catch (error) {
         res.status(500).json({
@@ -151,13 +172,27 @@ const getUserAllDataById = async (req, res) => {
             .populate('courseId', 'name');
 
         // Get user's watch history
-        const watchHistory = await  WatchHistory.find({ studentId: userId })
+        const watchHistory = await WatchHistory.find({ studentId: userId })
             .sort({ lastWatchedAt: -1 });
+
+        // Parse device info if it exists
+        let deviceInfo = null;
+        if (user.currentDeviceInfo) {
+            try {
+                deviceInfo = JSON.parse(user.currentDeviceInfo);
+            } catch (e) {
+                deviceInfo = { userAgent: user.currentDeviceInfo };
+            }
+        }
 
         res.status(200).json({
             status: 'success',
             data: {
-                userInfo: user,
+                userInfo: {
+                    ...user.toObject(),
+                    deviceInfo: deviceInfo,
+                    hasActiveSession: !!(user.currentSessionToken && user.sessionCreatedAt)
+                },
                 enrollments: enrollments.map(enrollment => ({
                     courseName: enrollment.courseId ? enrollment.courseId.name : 'Unknown Course',
                     enrollmentDate: enrollment.createdAt,

@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const expressAsyncHandler = require('express-async-handler');
+const crypto = require('crypto');
 const User = require('../modules/userModule');
 
 exports.signUp = expressAsyncHandler(async (req, res) => {
@@ -32,11 +33,22 @@ exports.signUp = expressAsyncHandler(async (req, res) => {
     await newUser.save();
     console.log('✅ New user saved to database:', newUser._id);
 
+    // Generate session token for single device login
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const deviceInfo = req.headers['user-agent'] || 'Unknown Device';
+
+    // Update user with session info
+    newUser.currentSessionToken = sessionToken;
+    newUser.currentDeviceInfo = deviceInfo;
+    newUser.sessionCreatedAt = new Date();
+    await newUser.save();
+
     // Generate JWT token
     const token = jwt.sign(
         {
             id: newUser._id,
-            role: newUser.role
+            role: newUser.role,
+            sessionToken: sessionToken
         },
         process.env.JWT_SECRET || "secretkey",
         { expiresIn: '7d' }
@@ -60,7 +72,6 @@ exports.signUp = expressAsyncHandler(async (req, res) => {
 exports.signIn = expressAsyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-
     // ابحث عن المستخدم بالإيميل أو رقم الهاتف
     const user = await User.findOne({ email });
 
@@ -75,19 +86,37 @@ exports.signIn = expressAsyncHandler(async (req, res) => {
         return res.status(401).json({ message: 'كلمة المرور غير صحيحة' });
     }
 
+    // Generate new session token for single device login
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const deviceInfo = req.headers['user-agent'] || 'Unknown Device';
+
+    // Check if user is already logged in on another device
+    const previousSessionExists = user.currentSessionToken && user.sessionCreatedAt;
+
+    // Update user with new session info (this will invalidate previous session)
+    user.currentSessionToken = sessionToken;
+    user.currentDeviceInfo = deviceInfo;
+    user.sessionCreatedAt = new Date();
+    user.lastActive = new Date();
+    await user.save();
+
     // توليد التوكن
     const token = jwt.sign(
         {
             id: user._id,
-            role: user.role
+            role: user.role,
+            sessionToken: sessionToken
         },
         process.env.JWT_SECRET || "secretkey",
         { expiresIn: '7d' }
     );
 
+    const responseMessage = previousSessionExists
+        ? 'تم تسجيل الدخول بنجاح - تم تسجيل الخروج من الجهاز الآخر'
+        : 'تم تسجيل الدخول بنجاح';
 
     res.status(200).json({
-        message: 'تم تسجيل الدخول بنجاح',
+        message: responseMessage,
         user: {
             id: user._id,
             name: user.name,
@@ -95,11 +124,30 @@ exports.signIn = expressAsyncHandler(async (req, res) => {
             phoneNumber: user.phoneNumber,
             role: user.role
         },
-        token
+        token,
+        wasLoggedOutFromOtherDevice: previousSessionExists
     });
 });
 
+exports.logout = expressAsyncHandler(async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
 
+        if (user) {
+            // Clear session data
+            user.currentSessionToken = null;
+            user.currentDeviceInfo = null;
+            user.sessionCreatedAt = null;
+            await user.save();
+        }
+
+        res.status(200).json({
+            message: 'تم تسجيل الخروج بنجاح'
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'حدث خطأ أثناء تسجيل الخروج' });
+    }
+});
 
 exports.protect = expressAsyncHandler(async (req, res, next) => {
     let token;
@@ -118,6 +166,18 @@ exports.protect = expressAsyncHandler(async (req, res, next) => {
         if (!user) {
             return res.status(401).json({ message: "User not found" });
         }
+
+        // Check if session token matches (single device login validation)
+        if (!decoded.sessionToken || decoded.sessionToken !== user.currentSessionToken) {
+            return res.status(401).json({
+                message: "Session expired - logged in from another device",
+                code: "SESSION_INVALID"
+            });
+        }
+
+        // Update last active time
+        user.lastActive = new Date();
+        await user.save();
 
         req.user = {
             id: user._id,

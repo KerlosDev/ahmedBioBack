@@ -232,3 +232,73 @@ exports.getAllActiveForUser = async (req, res) => {
         });
     }
 };
+
+exports.createEnrollmentByAdmin = async (req, res) => {
+    try {
+        const { studentId, courseId, price, paymentStatus = "paid" } = req.body;
+
+        // Validate required fields
+        if (!studentId || !courseId || !price) {
+            return res.status(400).json({
+                message: "جميع الحقول مطلوبة: معرف الطالب، معرف الكورس، والسعر"
+            });
+        }
+
+        // Check if student exists
+        const student = await User.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: "الطالب غير موجود" });
+        }
+
+        // Check if course exists
+        const Course = require("../modules/courseModule");
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: "الكورس غير موجود" });
+        }
+
+        // Check if already enrolled
+        const alreadyEnrolled = await Enrollment.findOne({ studentId, courseId });
+        if (alreadyEnrolled) {
+            return res.status(400).json({
+                message: "الطالب مشترك بالفعل في هذا الكورس"
+            });
+        }
+
+        // Create enrollment
+        const enrollment = await Enrollment.create({
+            studentId,
+            courseId,
+            price,
+            phoneNumber: student.phoneNumber,
+            paymentStatus,
+        });
+
+        // Populate the enrollment data for response
+        const populatedEnrollment = await Enrollment.findById(enrollment._id)
+            .populate('courseId', 'name')
+            .populate('studentId', 'name email phoneNumber');
+
+        res.status(201).json({
+            success: true,
+            message: "تم إضافة الاشتراك بنجاح",
+            enrollment: {
+                _id: populatedEnrollment._id,
+                userEmail: populatedEnrollment.studentId.email,
+                studentName: populatedEnrollment.studentId.name,
+                phoneNumber: populatedEnrollment.phoneNumber,
+                courseName: populatedEnrollment.courseId.name,
+                courseId: populatedEnrollment.courseId._id,
+                price: populatedEnrollment.price,
+                paymentStatus: populatedEnrollment.paymentStatus,
+                createdAt: populatedEnrollment.createdAt
+            }
+        });
+    } catch (error) {
+        console.error("Admin Enrollment Creation Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "حصل خطأ أثناء إضافة الاشتراك"
+        });
+    }
+};
