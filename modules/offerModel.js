@@ -29,6 +29,11 @@ const offerSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'Number of courses is required']
     },
+    courseLinks: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+        required: [true, 'Course reference is required']
+    }],
     students: {
         type: Number,
         required: [true, 'Number of students is required']

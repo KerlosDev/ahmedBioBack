@@ -20,6 +20,16 @@ class OfferService {
                 offerData.endDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
             }
 
+            // Ensure courseLinks is an array
+            if (offerData.courseLinks && !Array.isArray(offerData.courseLinks)) {
+                offerData.courseLinks = [offerData.courseLinks];
+            }
+
+            // Update courses count based on courseLinks
+            if (offerData.courseLinks) {
+                offerData.courses = offerData.courseLinks.length;
+            }
+
             const offer = await Offer.create(offerData);
             return offer;
         } catch (error) {
@@ -32,6 +42,7 @@ class OfferService {
     async getPublishedOffer() {
         try {
             const offers = await Offer.find({ stage: 'PUBLISHED' })
+                .populate('courseLinks', 'name description imageUrl price')
                 .sort({ createdAt: -1 })
                 .select('-__v');
             return offers;
@@ -44,6 +55,7 @@ class OfferService {
     async getAllOffers() {
         try {
             const offers = await Offer.find()
+                .populate('courseLinks', 'name description imageUrl price')
                 .sort({ createdAt: -1 })
                 .select('-__v');
             return offers;
