@@ -1,44 +1,65 @@
 const mongoose = require('mongoose');
 
 const offerSchema = new mongoose.Schema({
-    name: {
+    title: {
         type: String,
-        required: [true, 'Offer name is required']
-    }, docname: {
-        type: String,
-        required: [true, 'Doctor name is required']
+        required: [true, 'Offer title is required']
     },
-    courseLink: {
+    subtitle: {
         type: String,
-        required: [true, 'Course link is required']
+        required: [true, 'Offer subtitle is required']
     },
-    pricebefore: {
+    description: {
+        type: String,
+        required: [true, 'Offer description is required']
+    },
+    originalPrice: {
         type: Number,
         required: [true, 'Original price is required']
     },
-    priceafter: {
+    discountPrice: {
         type: Number,
-        required: [true, 'Discounted price is required']
+        required: [true, 'Discount price is required']
     },
-    first: {
-        type: String,
-        required: [true, 'First feature is required']
+    discountPercentage: {
+        type: Number,
+        required: [true, 'Discount percentage is required']
     },
-    second: {
-        type: String,
-        required: [true, 'Second feature is required']
+    courses: {
+        type: Number,
+        required: [true, 'Number of courses is required']
     },
-    third: {
-        type: String,
-        required: [true, 'Third feature is required']
+    students: {
+        type: Number,
+        required: [true, 'Number of students is required']
     },
-    fourth: {
-        type: String,
-        required: [true, 'Fourth feature is required']
+    rating: {
+        type: Number,
+        required: [true, 'Rating is required'],
+        min: [0, 'Rating must be at least 0'],
+        max: [5, 'Rating cannot be more than 5']
     },
-    fetures: {
+    features: [{
         type: String,
-        required: [true, 'Features list is required']
+        required: [true, 'Features are required']
+    }],
+    endDate: {
+        type: Date,
+        required: [true, 'End date is required']
+    },
+    isLimited: {
+        type: Boolean,
+        default: false
+    },
+    spotsLeft: {
+        type: Number,
+        min: [0, 'Spots left cannot be negative']
+    },
+    section: {
+        type: String,
+        required: [true, 'Section is required'],
+        enum: ['FIRST_SEC', 'SECOND_SEC', 'THIRD_SEC'],
+        default: 'FIRST_SEC'
     },
     stage: {
         type: String,

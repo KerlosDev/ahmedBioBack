@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const offerService = require('../services/offerService');
 const { protect, isAllow, isAdmin } = require('../services/authService');
-const validaorMiddlewere = require('../middleware/validMiddleware');
+const validatorMiddleware = require('../middleware/validMiddleware');
 const {
     createOfferValidator,
     updateOfferValidator,
@@ -12,10 +12,10 @@ const {
 // Public routes
 router.get('/published', async (req, res, next) => {
     try {
-        const offer = await offerService.getPublishedOffer();
+        const offers = await offerService.getPublishedOffer();
         res.status(200).json({
             status: 'success',
-            offer
+            offers
         });
     } catch (error) {
         next(error);
@@ -23,12 +23,27 @@ router.get('/published', async (req, res, next) => {
 });
 
 // Protected routes (admin only)
-router.use(protect,isAdmin);
+router.use(protect, isAdmin);
 
 router.route('/')
     .get(async (req, res, next) => {
         try {
-            const offers = await offerService.getAllOffers();
+            // Extract query parameters for filtering
+            const { stage, isLimited, endDate } = req.query;
+            const filters = {};
+
+            if (stage) {
+                filters.stage = stage.toUpperCase();
+            }
+            if (isLimited !== undefined) {
+                filters.isLimited = isLimited === 'true';
+            }
+            if (endDate) {
+                // Filter offers that haven't ended yet
+                filters.endDate = { $gte: new Date() };
+            }
+
+            const offers = await offerService.getAllOffers(filters);
             res.status(200).json({
                 status: 'success',
                 results: offers.length,
@@ -37,7 +52,7 @@ router.route('/')
         } catch (error) {
             next(error);
         }
-    }).post(createOfferValidator, validaorMiddlewere, async (req, res, next) => {
+    }).post(createOfferValidator, validatorMiddleware, async (req, res, next) => {
         try {
             const offer = await offerService.createOffer(req.body);
             res.status(201).json({
@@ -49,12 +64,13 @@ router.route('/')
         }
     });
 
-router.route('/:id').patch(updateOfferValidator, validaorMiddlewere, async (req, res, next) => {
+router.route('/:id').patch(updateOfferValidator, validatorMiddleware, async (req, res, next) => {
     try {
         const offer = await offerService.updateOffer(req.params.id, req.body);
         res.status(200).json({
             status: 'success',
-            offer
+            offer,
+            updatedAt: offer.updatedAt
         });
     } catch (error) {
         next(error);
@@ -72,12 +88,13 @@ router.route('/:id').patch(updateOfferValidator, validaorMiddlewere, async (req,
         }
     });
 
-router.patch('/:id/stage', changeStageValidator, validaorMiddlewere, async (req, res, next) => {
+router.patch('/:id/stage', changeStageValidator, validatorMiddleware, async (req, res, next) => {
     try {
         const offer = await offerService.changeOfferStage(req.params.id, req.body.stage);
         res.status(200).json({
             status: 'success',
-            offer
+            offer,
+            message: req.body.stage === 'PUBLISHED' ? 'Offer published successfully. Any previously published offers have been archived.' : `Offer ${req.body.stage.toLowerCase()} successfully.`
         });
     } catch (error) {
         next(error);

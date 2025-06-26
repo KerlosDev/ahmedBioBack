@@ -1,25 +1,25 @@
 const { check } = require('express-validator');
 
 exports.createOfferValidator = [
-    check('courseLink')
+    check('title')
         .notEmpty()
-        .withMessage('Course link is required')
-        .isURL()
-        .withMessage('Please provide a valid URL'),
-
-    check('name')
-        .notEmpty()
-        .withMessage('Offer name is required')
+        .withMessage('Offer title is required')
         .isString()
-        .withMessage('Offer name must be a string'),
+        .withMessage('Offer title must be a string'),
 
-    check('docname')
+    check('subtitle')
         .notEmpty()
-        .withMessage('Doctor name is required')
+        .withMessage('Offer subtitle is required')
         .isString()
-        .withMessage('Doctor name must be a string'),
+        .withMessage('Offer subtitle must be a string'),
 
-    check('pricebefore')
+    check('description')
+        .notEmpty()
+        .withMessage('Offer description is required')
+        .isString()
+        .withMessage('Offer description must be a string'),
+
+    check('originalPrice')
         .notEmpty()
         .withMessage('Original price is required')
         .isNumeric()
@@ -31,50 +31,72 @@ exports.createOfferValidator = [
             return true;
         }),
 
-    check('priceafter')
+    check('discountPrice')
         .notEmpty()
-        .withMessage('Discounted price is required')
+        .withMessage('Discount price is required')
         .isNumeric()
-        .withMessage('Discounted price must be a number')
+        .withMessage('Discount price must be a number')
         .custom((value, { req }) => {
             if (value <= 0) {
-                throw new Error('Discounted price must be greater than 0');
+                throw new Error('Discount price must be greater than 0');
             }
-            if (value >= req.body.pricebefore) {
-                throw new Error('Discounted price must be less than original price');
+            if (value >= req.body.originalPrice) {
+                throw new Error('Discount price must be less than original price');
             }
             return true;
         }),
 
-    check('first')
+    check('courses')
         .notEmpty()
-        .withMessage('First feature is required')
-        .isString()
-        .withMessage('First feature must be a string'),
+        .withMessage('Number of courses is required')
+        .isInt({ min: 1 })
+        .withMessage('Number of courses must be at least 1'),
 
-    check('second')
+    check('students')
         .notEmpty()
-        .withMessage('Second feature is required')
-        .isString()
-        .withMessage('Second feature must be a string'),
+        .withMessage('Number of students is required')
+        .isInt({ min: 0 })
+        .withMessage('Number of students cannot be negative'),
 
-    check('third')
+    check('rating')
         .notEmpty()
-        .withMessage('Third feature is required')
-        .isString()
-        .withMessage('Third feature must be a string'),
+        .withMessage('Rating is required')
+        .isFloat({ min: 0, max: 5 })
+        .withMessage('Rating must be between 0 and 5'),
 
-    check('fourth')
+    check('features')
         .notEmpty()
-        .withMessage('Fourth feature is required')
-        .isString()
-        .withMessage('Fourth feature must be a string'),
+        .withMessage('Features are required')
+        .custom((value) => {
+            if (Array.isArray(value)) {
+                if (value.length === 0) {
+                    throw new Error('At least one feature is required');
+                }
+                return true;
+            }
+            if (typeof value === 'string') {
+                if (value.trim().length === 0) {
+                    throw new Error('At least one feature is required');
+                }
+                return true;
+            }
+            throw new Error('Features must be an array or comma-separated string');
+        }),
 
-    check('fetures')
-        .notEmpty()
-        .withMessage('Features list is required')
-        .isString()
-        .withMessage('Features list must be a string'),
+    check('endDate')
+        .optional()
+        .isISO8601()
+        .withMessage('End date must be a valid date'),
+
+    check('isLimited')
+        .optional()
+        .isBoolean()
+        .withMessage('isLimited must be a boolean'),
+
+    check('spotsLeft')
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage('Spots left cannot be negative'),
 
     check('stage')
         .optional()
@@ -83,17 +105,22 @@ exports.createOfferValidator = [
 ];
 
 exports.updateOfferValidator = [
-    check('name')
+    check('title')
         .optional()
         .isString()
-        .withMessage('Offer name must be a string'),
+        .withMessage('Offer title must be a string'),
 
-    check('docname')
+    check('subtitle')
         .optional()
         .isString()
-        .withMessage('Doctor name must be a string'),
+        .withMessage('Offer subtitle must be a string'),
 
-    check('pricebefore')
+    check('description')
+        .optional()
+        .isString()
+        .withMessage('Offer description must be a string'),
+
+    check('originalPrice')
         .optional()
         .isNumeric()
         .withMessage('Original price must be a number')
@@ -104,49 +131,67 @@ exports.updateOfferValidator = [
             return true;
         }),
 
-    check('priceafter')
+    check('discountPrice')
         .optional()
         .isNumeric()
-        .withMessage('Discounted price must be a number')
+        .withMessage('Discount price must be a number')
         .custom((value, { req }) => {
             if (value <= 0) {
-                throw new Error('Discounted price must be greater than 0');
+                throw new Error('Discount price must be greater than 0');
             }
-            if (req.body.pricebefore && value >= req.body.pricebefore) {
-                throw new Error('Discounted price must be less than original price');
+            if (req.body.originalPrice && value >= req.body.originalPrice) {
+                throw new Error('Discount price must be less than original price');
             }
             return true;
         }),
 
-    check('first')
+    check('courses')
         .optional()
-        .isString()
-        .withMessage('First feature must be a string'),
+        .isInt({ min: 1 })
+        .withMessage('Number of courses must be at least 1'),
 
-    check('second')
+    check('students')
         .optional()
-        .isString()
-        .withMessage('Second feature must be a string'),
+        .isInt({ min: 0 })
+        .withMessage('Number of students cannot be negative'),
 
-    check('third')
+    check('rating')
         .optional()
-        .isString()
-        .withMessage('Third feature must be a string'),
+        .isFloat({ min: 0, max: 5 })
+        .withMessage('Rating must be between 0 and 5'),
 
-    check('fourth')
+    check('features')
         .optional()
-        .isString()
-        .withMessage('Fourth feature must be a string'),
+        .custom((value) => {
+            if (Array.isArray(value)) {
+                if (value.length === 0) {
+                    throw new Error('At least one feature is required');
+                }
+                return true;
+            }
+            if (typeof value === 'string') {
+                if (value.trim().length === 0) {
+                    throw new Error('At least one feature is required');
+                }
+                return true;
+            }
+            throw new Error('Features must be an array or comma-separated string');
+        }),
 
-    check('fetures')
+    check('endDate')
         .optional()
-        .isString()
-        .withMessage('Features list must be a string'),
+        .isISO8601()
+        .withMessage('End date must be a valid date'),
 
-    check('stage')
+    check('isLimited')
         .optional()
-        .isIn(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
-        .withMessage('Stage must be either DRAFT, PUBLISHED, or ARCHIVED')
+        .isBoolean()
+        .withMessage('isLimited must be a boolean'),
+
+    check('spotsLeft')
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage('Spots left cannot be negative')
 ];
 
 exports.changeStageValidator = [
