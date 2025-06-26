@@ -2,22 +2,26 @@ const axios = require("axios");
 const Course = require("../modules/courseModule");
 const expressAsyncHandler = require("express-async-handler");
 
-// ✅ رفع صورة إلى Imgur
-const uploadToImgur = async (buffer) => {
+// ✅ رفع صورة إلى ImgBB
+const uploadToImgBB = async (buffer) => {
   try {
-    const clientId = process.env.IMGUR_CLIENT_ID || '0298d92f449079f';
+    const apiKey = process.env.IMGBB_API_KEY || '192530c1c337c43e5cc555d3dfd0ec3d';
+    const base64Image = buffer.toString('base64');
 
-    const response = await axios.post("https://api.imgur.com/3/image", buffer, {
+    const formData = new URLSearchParams();
+    formData.append('key', apiKey);
+    formData.append('image', base64Image);
+
+    const response = await axios.post("https://api.imgbb.com/1/upload", formData, {
       headers: {
-        Authorization: `Client-ID ${clientId}`,
-        "Content-Type": "application/octet-stream",
-      },
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
     });
 
-    return response.data.data.link;
+    return response.data.data.url;
   } catch (error) {
-    console.error("Imgur Upload Error:", error.response?.data || error.message);
-    throw new Error("فشل رفع صورة الكورس إلى Imgur");
+    console.error("ImgBB Upload Error:", error.response?.data || error.message);
+    throw new Error("فشل رفع صورة الكورس إلى ImgBB");
   }
 };
 
@@ -26,7 +30,7 @@ const createCourseWithImage = async (body, imageFile = null) => {
   let imageUrl = body.imageUrl || null;
 
   if (imageFile) {
-    imageUrl = await uploadToImgur(imageFile.buffer);
+    imageUrl = await uploadToImgBB(imageFile.buffer);
   }
 
   const chapters = body.chapters ? JSON.parse(body.chapters) : [];
@@ -91,7 +95,7 @@ const updateCourse = async (courseId, body, imageFile = null) => {
   let imageUrl = course.imageUrl;
 
   if (imageFile) {
-    imageUrl = await uploadToImgur(imageFile.buffer);
+    imageUrl = await uploadToImgBB(imageFile.buffer);
   }
 
   const chapters = body.chapters ? JSON.parse(body.chapters) : course.chapters;
@@ -177,7 +181,7 @@ const getCourseByIdAdmin = async (req, res) => {
 
 
 module.exports = {
-  uploadToImgur,
+  uploadToImgBB,
   createCourseWithImage: expressAsyncHandler(createCourseWithImage),
   getCourses: expressAsyncHandler(getCourses),
   updateCourse: expressAsyncHandler(updateCourse),

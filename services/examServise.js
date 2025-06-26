@@ -1,22 +1,26 @@
 const Exam = require("../modules/examModel");
 const axios = require("axios");
 
-// ✅ رفع صورة واحدة إلى Imgur
-const uploadToImgur = async (buffer) => {
+// ✅ رفع صورة واحدة إلى ImgBB
+const uploadToImgBB = async (buffer) => {
   try {
-    const clientId = process.env.IMGUR_CLIENT_ID || '0298d92f449079f';
+    const apiKey = process.env.IMGBB_API_KEY || '192530c1c337c43e5cc555d3dfd0ec3d';
+    const base64Image = buffer.toString('base64');
 
-    const response = await axios.post("https://api.imgur.com/3/image", buffer, {
+    const formData = new URLSearchParams();
+    formData.append('key', apiKey);
+    formData.append('image', base64Image);
+
+    const response = await axios.post("https://api.imgbb.com/1/upload", formData, {
       headers: {
-        Authorization: `Client-ID ${clientId}`,
-        "Content-Type": "application/octet-stream",
-      },
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
     });
 
-    return response.data.data.link;
+    return response.data.data.url;
   } catch (error) {
-    console.error("Imgur Upload Error:", error.response?.data || error.message);
-    throw new Error("فشل رفع الصورة إلى Imgur");
+    console.error("ImgBB Upload Error:", error.response?.data || error.message);
+    throw new Error("فشل رفع الصورة إلى ImgBB");
   }
 };
 
@@ -37,7 +41,7 @@ const createExamWithImages = async (body, filesMap = {}) => {
       const file = filesMap[String(index)];
 
       if (file) {
-        imageUrl = await uploadToImgur(file.buffer);
+        imageUrl = await uploadToImgBB(file.buffer);
       }
 
       return {
@@ -131,7 +135,7 @@ const updateExamById = async (examId, examData, filesMap = {}) => {
         const file = filesMap[String(index)];
 
         if (file) {
-          imageUrl = await uploadToImgur(file.buffer);
+          imageUrl = await uploadToImgBB(file.buffer);
         }
 
         return {
@@ -162,7 +166,7 @@ const updateExamById = async (examId, examData, filesMap = {}) => {
 };
 
 module.exports = {
-  uploadToImgur,
+  uploadToImgBB,
   createExamWithImages,
   getAllExams,
   getExamById,
