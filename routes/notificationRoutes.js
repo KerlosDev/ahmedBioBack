@@ -98,7 +98,7 @@ router.get('/recent', async (req, res) => {
 });
 
 // Delete a specific notification (admin or creator only)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',isAdmin, async (req, res) => {
     try {
         const notificationId = req.params.id;
         const userId = req.user._id;

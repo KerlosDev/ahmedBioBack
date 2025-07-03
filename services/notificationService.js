@@ -111,10 +111,7 @@ class NotificationService {
                 throw new ApiError('الإشعار غير موجود', 404);
             }
 
-            // Check if user is the creator or admin
-            if (notification.createdBy.toString() !== userId) {
-                throw new ApiError('غير مصرح لك بحذف هذا الإشعار', 403);
-            }
+          
 
             await Notification.findByIdAndDelete(notificationId);
             return true;
@@ -144,10 +141,7 @@ class NotificationService {
             if (!notification) {
                 throw new ApiError('الإشعار غير موجود', 404);
             }
-
-            if (notification.createdBy.toString() !== userId) {
-                throw new ApiError('غير مصرح لك بحذف هذا الإشعار', 403);
-            }
+ 
 
             notification.isActive = false;
             await notification.save();
