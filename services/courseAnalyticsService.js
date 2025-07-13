@@ -126,7 +126,7 @@ const getCourseAnalytics = async (req, res) => {
                             { $gt: [{ $size: "$enrollments" }, 0] },
                             {
                                 $multiply: [
-                                    { 
+                                    {
                                         $divide: [
                                             {
                                                 $size: {
@@ -135,9 +135,9 @@ const getCourseAnalytics = async (req, res) => {
                                                         cond: { $eq: ["$$this.paymentStatus", "paid"] }
                                                     }
                                                 }
-                                            }, 
+                                            },
                                             { $size: "$enrollments" }
-                                        ] 
+                                        ]
                                     },
                                     100
                                 ]
